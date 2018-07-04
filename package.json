@@ -1,9 +1,11 @@
 {
   "name": "xp-loadcss",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tool to load css dynamicly, support promise",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
+  "repository": "git@github.com:excaliburhan/xp-loadcss.git",
+  "author": "xiaoping <edwardhjp@gmail.com>",
   "license": "MIT",
   "scripts": {
     "prepublishOnly": "npm run build",

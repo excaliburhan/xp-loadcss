@@ -15,9 +15,24 @@ function createLoadCSS() {
     if (!options.url) {
       throw new Error('loadcss: you must provide a url')
     }
-    return loadLink(options.selector, createLink(options))
+    if (checkLoaded(options.url)) {
+      return Promise.resolve('loaded')
+    } else {
+      return loadLink(options.selector, createLink(options))
+    }
   }
 
+  // 去除协议
+  function removeProtocol (url) {
+    return url.replace(/^https?:/, '')
+  }
+  // 检查是否已经加载
+  function checkLoaded (url) {
+    url = removeProtocol(url)
+    const tags = Array.prototype.slice.apply(document.getElementsByTagName('link'))
+    const urls = tags.map(item => removeProtocol(item.href))
+    return urls.indexOf(url) > -1
+  }
   // 加载
   function loadLink(selector, link) {
     selector = selector || document.getElementsByTagName('head')[0]
