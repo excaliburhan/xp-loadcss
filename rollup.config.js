@@ -1,37 +1,64 @@
-import babel from 'rollup-plugin-babel'
-import eslint from 'rollup-plugin-eslint'
-import resolve from 'rollup-plugin-node-resolve'
-import commonjs from 'rollup-plugin-commonjs'
-import replace from 'rollup-plugin-replace'
-import uglify from 'rollup-plugin-uglify'
+import path from 'path';
+import rollupTypescript from 'rollup-plugin-typescript2';
+import babel from '@rollup/plugin-babel';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import { eslint } from 'rollup-plugin-eslint';
+import { DEFAULT_EXTENSIONS } from '@babel/core';
+import pkg from './package.json';
 
-let plugins = [
-  resolve(),
-  commonjs(),
-  eslint(),
-  babel({
-    exclude: 'node_modules/**',
-  }),
-  replace({
-    exclude: 'node_modules/**',
-    ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
-  }),
-]
+const paths = {
+  input: path.join(__dirname, '/src/index.ts'),
+  output: path.join(__dirname, '/dist')
+};
 
-// 使用uglify压缩，一般不需要
-if (process.env.NODE_ENV === 'production') {
-  let prodPlugins = [uglify()]
-  plugins.concat(prodPlugins)
-}
+// rollup 配置项
+const rollupConfig = {
+  input: paths.input,
+  output: [
+    // 输出 commonjs 规范的代码
+    {
+      file: path.join(paths.output, 'index.js'),
+      format: 'cjs',
+      name: pkg.name,
+      exports: 'named'
+    },
+    // 输出 es 规范的代码
+    {
+      file: path.join(paths.output, 'index.esm.js'),
+      format: 'es',
+      name: pkg.name
+    }
+  ],
+  // external: ['lodash'], // 指出应将哪些模块视为外部模块，如 Peer dependencies 中的依赖
+  // plugins 需要注意引用顺序
+  plugins: [
+    // 验证导入的文件
+    eslint({
+      throwOnError: true, // lint 结果有错误将会抛出异常
+      throwOnWarning: true,
+      include: ['src/**/*.ts'],
+      exclude: ['node_modules/**', 'dist/**', '*.js']
+    }),
 
-export default {
-  input: 'src/index.js',
-  output: {
-    file: 'dist/index.js', // 输出的文件 (如果没有这个参数，则直接输出到控制台)
-    format: 'umd', // 输出的文件类型 (amd, cjs, es, iife, umd)
-    name: 'xpLib', // 生成UMD模块的名字
-    exports: 'named', // 导出模式，在导出多个时候使用
-    // sourcemap: true, // 生成 sourcemap (`-m inline` for inline map)
-  },
-  plugins: plugins,
-}
+    // 使得 rollup 支持 commonjs 规范，识别 commonjs 规范的依赖
+    commonjs(),
+    // 配合 commnjs 解析第三方模块
+    resolve({
+      // 将自定义选项传递给解析插件
+      customResolveOptions: {
+        moduleDirectory: 'node_modules'
+      }
+    }),
+    rollupTypescript(),
+    babel({
+      babelHelpers: 'bundled',
+      // 只转换源代码，不运行外部依赖
+      exclude: 'node_modules/**',
+      // babel 默认不支持 ts 需要手动添加
+      extensions: [...DEFAULT_EXTENSIONS, '.ts']
+    })
+  ]
+};
+
+export default rollupConfig;
