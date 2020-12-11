@@ -48,6 +48,9 @@ const release = async () => {
   // 更新 package.json
   const pkgPath = path.resolve(__dirname, '../package.json');
   pkgJSON.version = semver.inc(pkgJSON.version, releaseType);
+  if (customVersion) {
+    pkgJSON.version = customVersion;
+  }
   fs.writeFileSync(pkgPath, JSON.stringify(pkgJSON, null, 2));
 
   // git 发布
