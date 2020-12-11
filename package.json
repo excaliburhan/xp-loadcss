@@ -1,6 +1,6 @@
 {
   "name": "xp-loadcss",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A tool to load css dynamicly, support promise",
   "main": "dist/index.js",
   "repository": "git@github.com:excaliburhan/xp-loadcss.git",
